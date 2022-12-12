@@ -1,69 +1,75 @@
 import numpy as np
 import math
+import random
 
 
 """
-Generates a random variate to represent how long until a person would catch covid given
+Generates the probability a person would catch covid given
 - num_infected: the number of people infected
 - office_density: the people per area in the office
+- time_in_office: the amount of time a person spends in the office
 - ismasked: if the office is masked or not
 - isvent: if the office is well ventilated (hepa filters/good mechanical system)
 ismasked, and isvent default to false (no mitigation measures taken)
 """
-def rv_time_until_covid(num_infected, office_density, ismasked=False, isvent=False):
+def probability_catch_covid(num_infected, office_density, time_in_office, ismasked=False, isvent=False):
     if num_infected == 0:
-        return math.inf
+        return 0
     if ismasked and isvent:
-        return rv_covid_masks_vent(num_infected, office_density)
+        return p_covid_masks_vent(num_infected, time_in_office, office_density)
     elif ismasked:
-        return rv_covid_only_masks(num_infected, office_density)
+        return p_covid_only_masks(num_infected, time_in_office, office_density)
     elif isvent:
-        return rv_covid_only_vent(num_infected, office_density)
+        return p_covid_only_vent(num_infected, time_in_office, office_density)
     else:
-        return rv_covid_normal(num_infected, office_density)
+        return p_covid_normal(num_infected, time_in_office, office_density)
 
 
 """
-Generates a random variate to represent how long until a person would catch covid given
+Generates the probability a person would catch covid given
 - num_infected: the number of people infected
+- time_in_office: the amount of time spent in the office
 - office_density: the people per area in the office
 - masks and good ventilation are in use
 """
-def rv_covid_masks_vent(num_infected, office_density):
+def p_covid_masks_vent(num_infected, time_in_office, office_density):
     # TODO: rv if all are masked & ventilation good
-    return math.inf
+    return 0
 
 
 """
-Generates a random variate to represent how long until a person would catch covid given
+Generates the probability a person would catch covid given
 - num_infected: the number of people infected
+- time_in_office: the amount of time spent in the office
 - office_density: the people per area in the office
 - masks are in use
 """
-def rv_covid_only_masks(num_infected, office_density):
+def p_covid_only_masks(num_infected, time_in_office, office_density):
     # TODO: rv if all are masked
-    return math.inf
+    return 0
 
 
 """
-Generates a random variate to represent how long until a person would catch covid given
+Generates the probability a person would catch covid given
 - num_infected: the number of people infected
+- time_in_office: the amount of time spent in the office
 - office_density: the people per area in the office
 - good ventilation is in use
 """
-def rv_covid_only_vent(num_infected, office_density):
+def p_covid_only_vent(num_infected, time_in_office, office_density):
     # TODO: rv if ventilation good
-    return math.inf
+    return 0
 
 
 """
-Generates a random variate to represent how long until a person would catch covid given
+Generates the probability a person would catch covid given
 - num_infected: the number of people infected
+- time_in_office: the amount of time spent in the office
 - office_density: the people per area in the office
 """
-def rv_covid_normal(num_infected, office_density):
+def p_covid_normal(num_infected, time_in_office, office_density):
     # TODO: rv if no measures taken
-    return math.inf
+    return 0
 
 
 """
@@ -93,7 +99,8 @@ def run_simulation(num_in_office, office_density, outside_infection_rate=0.0015,
     if run_as_one:
         number_infected_in_office = 0
         for i in range(num_in_office):
-            if rv_time_in_office(ave_shift,standard_dev) > rv_time_until_covid(1,office_density,ismasked,isvent):
+            time_in_office = rv_time_in_office(ave_shift, standard_dev)
+            if random.random() <= probability_catch_covid(num_in_office,office_density,time_in_office,ismasked,isvent):
                 number_infected_in_office += 1
         return number_infected_in_office
     else:
@@ -104,8 +111,9 @@ def run_simulation(num_in_office, office_density, outside_infection_rate=0.0015,
             p = outside_infection_rate
             probability = math.comb(n,k)*(p**k)*((1-p)**k)  # binomial distribution
             number_infected_in_office = 0
-            for j in range(num_in_office):
-                if rv_time_in_office(ave_shift, standard_dev) > rv_time_until_covid(k, office_density, ismasked, isvent):
+            for j in range(num_in_office-k):
+                time_in_office = rv_time_in_office(ave_shift, standard_dev)
+                if random.random() <= probability_catch_covid(num_in_office,office_density,time_in_office,ismasked,isvent):
                     number_infected_in_office += 1
             expected_number_infected += probability*number_infected_in_office
         return expected_number_infected
