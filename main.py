@@ -6,70 +6,31 @@ import random
 """
 Generates the probability a person would catch covid given
 - num_infected: the number of people infected
-- office_density: the people per area in the office
+- office_volume: the area in the office
 - time_in_office: the amount of time a person spends in the office
 - ismasked: if the office is masked or not
 - isvent: if the office is well ventilated (hepa filters/good mechanical system)
 ismasked, and isvent default to false (no mitigation measures taken)
 """
-def probability_catch_covid(num_infected, office_density, time_in_office, ismasked=False, isvent=False):
+def probability_catch_covid(num_infected, office_volume, time_in_office, ismasked=False, isvent=False):
     if num_infected == 0:
         return 0
+    a = num_infected/office_volume
+    b = 1.61
     if ismasked and isvent:
-        return p_covid_masks_vent(num_infected, time_in_office, office_density)
+        a *= 0.004936
+        b = 10.87
     elif ismasked:
-        return p_covid_only_masks(num_infected, time_in_office, office_density)
+        a *= 0.033230
+        b = 1.61
     elif isvent:
-        return p_covid_only_vent(num_infected, time_in_office, office_density)
+        a *= 0.034039
+        b = 10.87
     else:
-        return p_covid_normal(num_infected, time_in_office, office_density)
-
-
-"""
-Generates the probability a person would catch covid given
-- num_infected: the number of people infected
-- time_in_office: the amount of time spent in the office
-- office_density: the people per area in the office
-- masks and good ventilation are in use
-"""
-def p_covid_masks_vent(num_infected, time_in_office, office_density):
-    # TODO: rv if all are masked & ventilation good
-    return 0
-
-
-"""
-Generates the probability a person would catch covid given
-- num_infected: the number of people infected
-- time_in_office: the amount of time spent in the office
-- office_density: the people per area in the office
-- masks are in use
-"""
-def p_covid_only_masks(num_infected, time_in_office, office_density):
-    # TODO: rv if all are masked
-    return 0
-
-
-"""
-Generates the probability a person would catch covid given
-- num_infected: the number of people infected
-- time_in_office: the amount of time spent in the office
-- office_density: the people per area in the office
-- good ventilation is in use
-"""
-def p_covid_only_vent(num_infected, time_in_office, office_density):
-    # TODO: rv if ventilation good
-    return 0
-
-
-"""
-Generates the probability a person would catch covid given
-- num_infected: the number of people infected
-- time_in_office: the amount of time spent in the office
-- office_density: the people per area in the office
-"""
-def p_covid_normal(num_infected, time_in_office, office_density):
-    # TODO: rv if no measures taken
-    return 0
+        a *= 0.229814
+        b = 1.61
+    d_q = 0.49 * (a*time_in_office - a/b + (a/b)*math.exp(-b*time_in_office))
+    return 1 - math.exp(-d_q)
 
 
 """
@@ -86,7 +47,7 @@ def rv_time_in_office(average_shift=480, standard_dev=15):
 """
 Runs a simulation to generate the number of employees who would be infected after one workday given
 - num_in_office: the number of people in the office
-- office_density: the people per area in the office
+- office_volume: the area in the office
 - outside_infection_rate: the rate at which people come into the office with covid
 - ismasked: if the office is masked or not
 - isvent: if the office is well ventilated (hepa filters/good mechanical system)
@@ -95,12 +56,12 @@ outside_infection_rate has a default of 0.0015, which is the current rate of cov
 ismasked, and isvent default to false (no mitigation measures taken)
 run_as_one defaults to false (run with current infection rates)
 """
-def run_simulation(num_in_office, office_density, outside_infection_rate=0.0015, ismasked=False, isvent=False, run_as_one=False, ave_shift=480, standard_dev=15):
+def run_simulation(num_in_office, office_volume, outside_infection_rate=0.0015, ismasked=False, isvent=False, run_as_one=False, ave_shift=480, standard_dev=15):
     if run_as_one:
         number_infected_in_office = 0
         for i in range(num_in_office):
             time_in_office = rv_time_in_office(ave_shift, standard_dev)
-            if random.random() <= probability_catch_covid(num_in_office,office_density,time_in_office,ismasked,isvent):
+            if random.random() <= probability_catch_covid(num_in_office, office_volume, time_in_office, ismasked, isvent):
                 number_infected_in_office += 1
         return number_infected_in_office
     else:
@@ -113,7 +74,7 @@ def run_simulation(num_in_office, office_density, outside_infection_rate=0.0015,
             number_infected_in_office = 0
             for j in range(num_in_office-k):
                 time_in_office = rv_time_in_office(ave_shift, standard_dev)
-                if random.random() <= probability_catch_covid(num_in_office,office_density,time_in_office,ismasked,isvent):
+                if random.random() <= probability_catch_covid(num_in_office, office_volume, time_in_office, ismasked, isvent):
                     number_infected_in_office += 1
             expected_number_infected += probability*number_infected_in_office
         return expected_number_infected
@@ -122,92 +83,92 @@ def run_simulation(num_in_office, office_density, outside_infection_rate=0.0015,
 """
 Main function, starts simulation according to preferences
 """
-def main_allnumbers(num_in_office, office_density, outside_infection_rate=0.0015, average_shift=480, standard_dev=15):
+def main_allnumbers(num_in_office, office_volume, outside_infection_rate=0.0015, average_shift=480, standard_dev=15):
     print("Given that: ")
     print("The number of people in the office is " + str(num_in_office))
-    print("The density of people in the office (people per space) is " + str(office_density))
+    print("The area of the office is " + str(office_volume))
     print("The outside infection rate is " + str(outside_infection_rate))
     print("The standard length of shift is " + str(average_shift))
     print("The standard deviation of length of shift is " + str(standard_dev))
 
-    number_of_runs = 50
+    number_of_runs = 10000
 
     without_measures = 0
     for i in range(number_of_runs):
-        without_measures += run_simulation(num_in_office, office_density, outside_infection_rate, ave_shift=average_shift, standard_dev=standard_dev)
+        without_measures += run_simulation(num_in_office, office_volume, outside_infection_rate, ave_shift=average_shift, standard_dev=standard_dev)
     without_measures = without_measures/number_of_runs
     print("The expected number of people with covid after one day in office is " + str(without_measures) + " when no mitigation strategies are used.")
 
     masking = 0
     for i in range(number_of_runs):
-        masking += run_simulation(num_in_office, office_density, outside_infection_rate, ismasked=True, ave_shift=average_shift, standard_dev=standard_dev)
+        masking += run_simulation(num_in_office, office_volume, outside_infection_rate, ismasked=True, ave_shift=average_shift, standard_dev=standard_dev)
     masking = masking/number_of_runs
     print("The expected number of people with covid after one day in office is " + str(masking) + " when masks are used in the office.")
 
     ventilation = 0
     for i in range(number_of_runs):
-        ventilation += run_simulation(num_in_office, office_density, outside_infection_rate, isvent=True, ave_shift=average_shift, standard_dev=standard_dev)
+        ventilation += run_simulation(num_in_office, office_volume, outside_infection_rate, isvent=True, ave_shift=average_shift, standard_dev=standard_dev)
     ventilation = ventilation/number_of_runs
     print("The expected number of people with covid after one day in office is " + str(ventilation) + " when the office uses good ventilation systems.")
 
-    chance = 1 # chance a person does not know they have covid (goes into office)
+    chance = 0.75 # chance a person does not know they have covid (goes into office)
     quarantine = 0
     for i in range(number_of_runs):
-        quarantine += run_simulation(num_in_office, office_density, outside_infection_rate*chance, ave_shift=average_shift, standard_dev=standard_dev)
+        quarantine += run_simulation(num_in_office, office_volume, outside_infection_rate * chance, ave_shift=average_shift, standard_dev=standard_dev)
     quarantine = quarantine/number_of_runs
     print("The expected number of people with covid after one day in office is " + str(quarantine) + " when the office encourages quarantining when an employee is feeling symptoms.")
 
     all_measures = 0
     for i in range(number_of_runs):
-        all_measures += run_simulation(num_in_office, office_density, outside_infection_rate*chance, True, True, False, average_shift, standard_dev)
+        all_measures += run_simulation(num_in_office, office_volume, outside_infection_rate * chance, True, True, False, average_shift, standard_dev)
     all_measures = all_measures/number_of_runs
     print("The expected number of people with covid after one day in office is " + str(all_measures) + " when the office uses all mentioned mitigation strategies.")
 
 
-def main_runasone(num_in_office, office_density, outside_infection_rate=0.0015, average_shift=480, standard_dev=15):
+def main_runasone(num_in_office, office_volume, outside_infection_rate=0.0015, average_shift=480, standard_dev=15):
     print("Given that: ")
     print("The number of people in the office is " + str(num_in_office))
-    print("The density of people in the office (people per space) is " + str(office_density))
+    print("The area of the office is " + str(office_volume))
     print("The outside infection rate is " + str(outside_infection_rate))
     print("The standard length of shift is " + str(average_shift))
     print("The standard deviation of length of shift is " + str(standard_dev))
 
-    number_of_runs = 50
+    number_of_runs = 10000
 
     print("Here are the numbers when the simulation is run with exactly one person coming into the office with covid: ")
 
     without_measures = 0
     for i in range(number_of_runs):
-        without_measures += run_simulation(num_in_office, office_density, outside_infection_rate, run_as_one=True, ave_shift=average_shift, standard_dev=standard_dev)
+        without_measures += run_simulation(num_in_office, office_volume, outside_infection_rate, run_as_one=True, ave_shift=average_shift, standard_dev=standard_dev)
     without_measures = without_measures / number_of_runs
     print("The expected number of people with covid after one day in office is " + str(
         without_measures) + " when no mitigation strategies are used.")
 
     masking = 0
     for i in range(number_of_runs):
-        masking += run_simulation(num_in_office, office_density, outside_infection_rate, ismasked=True, run_as_one=True, ave_shift=average_shift, standard_dev=standard_dev)
+        masking += run_simulation(num_in_office, office_volume, outside_infection_rate, ismasked=True, run_as_one=True, ave_shift=average_shift, standard_dev=standard_dev)
     masking = masking / number_of_runs
     print("The expected number of people with covid after one day in office is " + str(
         masking) + " when masks are used in the office.")
 
     ventilation = 0
     for i in range(number_of_runs):
-        ventilation += run_simulation(num_in_office, office_density, outside_infection_rate, isvent=True, run_as_one=True, ave_shift=average_shift, standard_dev=standard_dev)
+        ventilation += run_simulation(num_in_office, office_volume, outside_infection_rate, isvent=True, run_as_one=True, ave_shift=average_shift, standard_dev=standard_dev)
     ventilation = ventilation / number_of_runs
     print("The expected number of people with covid after one day in office is " + str(
         ventilation) + " when the office uses good ventilation systems.")
 
-    chance = 1  # chance a person does not know they have covid (goes into office)
+    chance = 0.75  # chance a person does not know they have covid (goes into office)
     quarantine = 0
     for i in range(number_of_runs):
-        quarantine += run_simulation(num_in_office, office_density, outside_infection_rate * chance, run_as_one=True, ave_shift=average_shift, standard_dev=standard_dev)
+        quarantine += run_simulation(num_in_office, office_volume, outside_infection_rate * chance, run_as_one=True, ave_shift=average_shift, standard_dev=standard_dev)
     quarantine = quarantine / number_of_runs
     print("The expected number of people with covid after one day in office is " + str(
         quarantine) + " when the office encourages quarantining when an employee is feeling symptoms.")
 
     all_measures = 0
     for i in range(number_of_runs):
-        all_measures += run_simulation(num_in_office, office_density, outside_infection_rate * chance, True, True, True, average_shift, standard_dev)
+        all_measures += run_simulation(num_in_office, office_volume, outside_infection_rate * chance, True, True, True, average_shift, standard_dev)
     all_measures = all_measures / number_of_runs
     print("The expected number of people with covid after one day in office is " + str(
         all_measures) + " when the office uses all mentioned mitigation strategies.")
@@ -215,13 +176,21 @@ def main_runasone(num_in_office, office_density, outside_infection_rate=0.0015, 
 # TODO: stats on output?
 
 def main():
-    num_in_office = 0
-    office_density = 0
+    num_in_office = 50
+    office_volume = 18750
     outside_infection_rate = 0.0015
     average_shift = 480
     standard_dev = 15
-    main_allnumbers(num_in_office, office_density, outside_infection_rate, average_shift, standard_dev)
-    main_runasone(num_in_office, office_density, outside_infection_rate, average_shift, standard_dev)
+    main_allnumbers(num_in_office, office_volume, outside_infection_rate, average_shift, standard_dev)
+    main_runasone(num_in_office, office_volume, outside_infection_rate, average_shift, standard_dev)
+
+
+
+def test():
+    print(probability_catch_covid(1,100,480))
+    print(probability_catch_covid(1,100,480,True))
+    print(probability_catch_covid(1,100,480,False,True))
+    print(probability_catch_covid(1,100,400,True,True))
 
 
 if __name__ == '__main__':
