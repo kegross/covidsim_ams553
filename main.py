@@ -11,6 +11,7 @@ Generates the probability a person would catch covid given
 - ismasked: if the office is masked or not
 - isvent: if the office is well ventilated (hepa filters/good mechanical system)
 ismasked, and isvent default to false (no mitigation measures taken)
+These numbers are from https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7474922/
 """
 def probability_catch_covid(num_infected, office_volume, time_in_office, ismasked=False, isvent=False):
     if num_infected == 0:
@@ -91,7 +92,7 @@ def main_allnumbers(num_in_office, office_volume, outside_infection_rate=0.0015,
     print("The standard length of shift is " + str(average_shift))
     print("The standard deviation of length of shift is " + str(standard_dev))
 
-    number_of_runs = 1000000
+    number_of_runs = 10000
 
     without_measures = []
     for i in range(number_of_runs):
@@ -134,10 +135,16 @@ def main_allnumbers(num_in_office, office_volume, outside_infection_rate=0.0015,
     print("\hline")
     print(" & No Measures & Masking Only & Ventilation Only & Quarantine & All Measures")
     print("\hline\hline")
-    print("Mean & " + str(without_measures_mean) + " & " + str(masking_mean) + " & " + str(ventilation_mean) + " & " + str(quarantine_mean) + " & " + str(all_measures_mean))
+    print("Mean & " + str(round(without_measures_mean,8)) + " & " + str(round(masking_mean,8)) + " & " + str(round(ventilation_mean,8)) + " & " + str(round(quarantine_mean,8)) + " & " + str(round(all_measures_mean,8)))
     print("\hline")
-    print("Standard Deviation & " + str(without_measures_std) + " & " + str(masking_std) + " & " + str(
-        ventilation_std) + " & " + str(quarantine_std) + " & " + str(all_measures_std))
+    print("Standard Deviation & " + str(round(without_measures_std,8)) + " & " + str(round(masking_std,8)) + " & " + str(round(
+        ventilation_std,8)) + " & " + str(round(quarantine_std,8)) + " & " + str(round(all_measures_std,8)))
+    print("\hline")
+    print("95% Confidence & " + str(round(without_measures_mean,4)) + "\pm " + str(round((without_measures_std*1.96/math.sqrt(number_of_runs)),4))
+          + " & " + str(round(masking_mean,4)) + "\pm " + str(round((masking_std*1.96/math.sqrt(number_of_runs)),4)) + " & " + str(round(ventilation_mean,4))
+          + "\pm " + str(round((ventilation_std*1.96/math.sqrt(number_of_runs)),4)) + " & " + str(round(quarantine_mean,4)) + "\pm "
+          + str(round((quarantine_std*1.96/math.sqrt(number_of_runs)),4)) + " & " + str(round(all_measures_mean,4)) + "\pm "
+          + str(round((all_measures_std*1.96/math.sqrt(number_of_runs)),4)))
     print("\hline")
 
 def main_runasone(num_in_office, office_volume, outside_infection_rate=0.0015, average_shift=480, standard_dev=15):
@@ -148,7 +155,7 @@ def main_runasone(num_in_office, office_volume, outside_infection_rate=0.0015, a
     print("The standard length of shift is " + str(average_shift))
     print("The standard deviation of length of shift is " + str(standard_dev))
 
-    number_of_runs = 1000000
+    number_of_runs = 10000
 
     print("Here are the numbers when the simulation is run with exactly one person coming into the office with covid: ")
 
@@ -197,32 +204,40 @@ def main_runasone(num_in_office, office_volume, outside_infection_rate=0.0015, a
     print("\hline")
     print(" & No Measures & Masking Only & Ventilation Only & Quarantine & All Measures")
     print("\hline\hline")
-    print("Mean & " + str(without_measures_mean) + " & " + str(masking_mean) + " & " + str(
-        ventilation_mean) + " & " + str(quarantine_mean) + " & " + str(all_measures_mean))
+    print("Mean & " + str(round(without_measures_mean,8)) + " & " + str(round(masking_mean,8)) + " & " + str(round(
+        ventilation_mean,8)) + " & " + str(round(quarantine_mean,8)) + " & " + str(round(all_measures_mean,8)))
     print("\hline")
-    print("Standard Deviation & " + str(without_measures_std) + " & " + str(masking_std) + " & " + str(
-        ventilation_std) + " & " + str(quarantine_std) + " & " + str(all_measures_std))
+    print("Standard Deviation & " + str(round(without_measures_std,8)) + " & " + str(round(masking_std,8)) + " & " + str(round(
+        ventilation_std,8)) + " & " + str(round(quarantine_std,8)) + " & " + str(round(all_measures_std,8)))
+    print("\hline")
+    print("95% Confidence & " + str(round(without_measures_mean, 4)) + "\pm " + str(
+        round((without_measures_std * 1.96 / math.sqrt(number_of_runs)), 4)) + " & " + str(
+        round(masking_mean, 4)) + "\pm " + str(round((masking_std * 1.96 / math.sqrt(number_of_runs)), 4)) + " & " + str(
+        round(ventilation_mean, 4)) + "\pm " + str(
+        round((ventilation_std * 1.96 / math.sqrt(number_of_runs)), 4)) + " & " + str(
+        round(quarantine_mean, 4)) + "\pm " + str(
+        round((quarantine_std * 1.96 / math.sqrt(number_of_runs)), 4)) + " & " + str(
+        round(all_measures_mean, 4)) + "\pm " + str(round((all_measures_std * 1.96 / math.sqrt(number_of_runs)), 4)))
     print("\hline")
 
-# TODO: Test 80sqft per person, 125, 150
-# TODO: Test 20, 50, 100, 500 people
 
+"""
+This is where to "edit" for different situations
+Number of people, Volume of the space, Outside infection rate, Average shift (length of time in setting) 
+and its standard deviation all start in this function.
+
+You may also comment out if you do not wish to run as if exactly one person came in while infected or comment out the 
+other way of calculating it based on infection rate.
+"""
 def main():
-    num_in_office = 20
-    office_volume = 360
+    num_in_office = 100
+    office_volume = 2830
     outside_infection_rate = 0.0015
     average_shift = 433.578
     standard_dev = 20.32
     main_allnumbers(num_in_office, office_volume, outside_infection_rate, average_shift, standard_dev)
     main_runasone(num_in_office, office_volume, outside_infection_rate, average_shift, standard_dev)
 
-
-
-def test():
-    print(probability_catch_covid(1,100,480))
-    print(probability_catch_covid(1,100,480,True))
-    print(probability_catch_covid(1,100,480,False,True))
-    print(probability_catch_covid(1,100,400,True,True))
 
 
 if __name__ == '__main__':
