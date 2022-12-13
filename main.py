@@ -91,39 +91,54 @@ def main_allnumbers(num_in_office, office_volume, outside_infection_rate=0.0015,
     print("The standard length of shift is " + str(average_shift))
     print("The standard deviation of length of shift is " + str(standard_dev))
 
-    number_of_runs = 10000
+    number_of_runs = 1000000
 
-    without_measures = 0
+    without_measures = []
     for i in range(number_of_runs):
-        without_measures += run_simulation(num_in_office, office_volume, outside_infection_rate, ave_shift=average_shift, standard_dev=standard_dev)
-    without_measures = without_measures/number_of_runs
-    print("The expected number of people with covid after one day in office is " + str(without_measures) + " when no mitigation strategies are used.")
+        without_measures += [run_simulation(num_in_office, office_volume, outside_infection_rate, ave_shift=average_shift, standard_dev=standard_dev)]
+    without_measures_mean = np.mean(without_measures)
+    without_measures_std = np.std(without_measures)
+    print("The expected number of people with covid after one day in office is " + str(without_measures_mean) + " when no mitigation strategies are used.")
 
-    masking = 0
+    masking = []
     for i in range(number_of_runs):
-        masking += run_simulation(num_in_office, office_volume, outside_infection_rate, ismasked=True, ave_shift=average_shift, standard_dev=standard_dev)
-    masking = masking/number_of_runs
-    print("The expected number of people with covid after one day in office is " + str(masking) + " when masks are used in the office.")
+        masking += [run_simulation(num_in_office, office_volume, outside_infection_rate, ismasked=True, ave_shift=average_shift, standard_dev=standard_dev)]
+    masking_mean = np.mean(masking)
+    masking_std = np.std(masking)
+    print("The expected number of people with covid after one day in office is " + str(masking_mean) + " when masks are used in the office.")
 
-    ventilation = 0
+    ventilation = []
     for i in range(number_of_runs):
-        ventilation += run_simulation(num_in_office, office_volume, outside_infection_rate, isvent=True, ave_shift=average_shift, standard_dev=standard_dev)
-    ventilation = ventilation/number_of_runs
-    print("The expected number of people with covid after one day in office is " + str(ventilation) + " when the office uses good ventilation systems.")
+        ventilation += [run_simulation(num_in_office, office_volume, outside_infection_rate, isvent=True, ave_shift=average_shift, standard_dev=standard_dev)]
+    ventilation_mean = np.mean(ventilation)
+    ventilation_std = np.std(ventilation)
+    print("The expected number of people with covid after one day in office is " + str(ventilation_mean) + " when the office uses good ventilation systems.")
 
-    chance = 0.75 # chance a person does not know they have covid (goes into office)
-    quarantine = 0
+    chance = 0.4 # chance a person does not know they have covid (goes into office)
+    quarantine = []
     for i in range(number_of_runs):
-        quarantine += run_simulation(num_in_office, office_volume, outside_infection_rate * chance, ave_shift=average_shift, standard_dev=standard_dev)
-    quarantine = quarantine/number_of_runs
-    print("The expected number of people with covid after one day in office is " + str(quarantine) + " when the office encourages quarantining when an employee is feeling symptoms.")
+        quarantine += [run_simulation(num_in_office, office_volume, outside_infection_rate * chance, ave_shift=average_shift, standard_dev=standard_dev)]
+    quarantine_mean = np.mean(quarantine)
+    quarantine_std = np.std(quarantine)
+    print("The expected number of people with covid after one day in office is " + str(quarantine_mean) + " when the office encourages quarantining when an employee is feeling symptoms.")
 
-    all_measures = 0
+    all_measures = []
     for i in range(number_of_runs):
-        all_measures += run_simulation(num_in_office, office_volume, outside_infection_rate * chance, True, True, False, average_shift, standard_dev)
-    all_measures = all_measures/number_of_runs
-    print("The expected number of people with covid after one day in office is " + str(all_measures) + " when the office uses all mentioned mitigation strategies.")
+        all_measures += [run_simulation(num_in_office, office_volume, outside_infection_rate * chance, True, True, False, average_shift, standard_dev)]
+    all_measures_mean = np.mean(all_measures)
+    all_measures_std = np.std(all_measures)
+    print("The expected number of people with covid after one day in office is " + str(all_measures_mean) + " when the office uses all mentioned mitigation strategies.")
 
+
+    print("LaTeX Table Form")
+    print("\hline")
+    print(" & No Measures & Masking Only & Ventilation Only & Quarantine & All Measures")
+    print("\hline\hline")
+    print("Mean & " + str(without_measures_mean) + " & " + str(masking_mean) + " & " + str(ventilation_mean) + " & " + str(quarantine_mean) + " & " + str(all_measures_mean))
+    print("\hline")
+    print("Standard Deviation & " + str(without_measures_std) + " & " + str(masking_std) + " & " + str(
+        ventilation_std) + " & " + str(quarantine_std) + " & " + str(all_measures_std))
+    print("\hline")
 
 def main_runasone(num_in_office, office_volume, outside_infection_rate=0.0015, average_shift=480, standard_dev=15):
     print("Given that: ")
@@ -133,54 +148,71 @@ def main_runasone(num_in_office, office_volume, outside_infection_rate=0.0015, a
     print("The standard length of shift is " + str(average_shift))
     print("The standard deviation of length of shift is " + str(standard_dev))
 
-    number_of_runs = 10000
+    number_of_runs = 1000000
 
     print("Here are the numbers when the simulation is run with exactly one person coming into the office with covid: ")
 
-    without_measures = 0
+    without_measures = []
     for i in range(number_of_runs):
-        without_measures += run_simulation(num_in_office, office_volume, outside_infection_rate, run_as_one=True, ave_shift=average_shift, standard_dev=standard_dev)
-    without_measures = without_measures / number_of_runs
+        without_measures += [run_simulation(num_in_office, office_volume, outside_infection_rate, run_as_one=True, ave_shift=average_shift, standard_dev=standard_dev)]
+    without_measures_mean = np.mean(without_measures)
+    without_measures_std = np.std(without_measures)
     print("The expected number of people with covid after one day in office is " + str(
-        without_measures) + " when no mitigation strategies are used.")
+        without_measures_mean) + " when no mitigation strategies are used.")
 
-    masking = 0
+    masking = []
     for i in range(number_of_runs):
-        masking += run_simulation(num_in_office, office_volume, outside_infection_rate, ismasked=True, run_as_one=True, ave_shift=average_shift, standard_dev=standard_dev)
-    masking = masking / number_of_runs
+        masking += [run_simulation(num_in_office, office_volume, outside_infection_rate, ismasked=True, run_as_one=True, ave_shift=average_shift, standard_dev=standard_dev)]
+    masking_mean = np.mean(masking)
+    masking_std = np.std(masking)
     print("The expected number of people with covid after one day in office is " + str(
-        masking) + " when masks are used in the office.")
+        masking_mean) + " when masks are used in the office.")
 
-    ventilation = 0
+    ventilation = []
     for i in range(number_of_runs):
-        ventilation += run_simulation(num_in_office, office_volume, outside_infection_rate, isvent=True, run_as_one=True, ave_shift=average_shift, standard_dev=standard_dev)
-    ventilation = ventilation / number_of_runs
+        ventilation += [run_simulation(num_in_office, office_volume, outside_infection_rate, isvent=True, run_as_one=True, ave_shift=average_shift, standard_dev=standard_dev)]
+    ventilation_mean = np.mean(ventilation)
+    ventilation_std = np.std(ventilation)
     print("The expected number of people with covid after one day in office is " + str(
-        ventilation) + " when the office uses good ventilation systems.")
+        ventilation_mean) + " when the office uses good ventilation systems.")
 
-    chance = 0.75  # chance a person does not know they have covid (goes into office)
-    quarantine = 0
+    chance = 0.4  # chance a person does not know they have covid (goes into office)
+    quarantine = []
     for i in range(number_of_runs):
-        quarantine += run_simulation(num_in_office, office_volume, outside_infection_rate * chance, run_as_one=True, ave_shift=average_shift, standard_dev=standard_dev)
-    quarantine = quarantine / number_of_runs
+        quarantine += [run_simulation(num_in_office, office_volume, outside_infection_rate * chance, run_as_one=True, ave_shift=average_shift, standard_dev=standard_dev)]
+    quarantine_mean = np.mean(quarantine)
+    quarantine_std = np.std(quarantine)
     print("The expected number of people with covid after one day in office is " + str(
-        quarantine) + " when the office encourages quarantining when an employee is feeling symptoms.")
+        quarantine_mean) + " when the office encourages quarantining when an employee is feeling symptoms.")
 
-    all_measures = 0
+    all_measures = []
     for i in range(number_of_runs):
-        all_measures += run_simulation(num_in_office, office_volume, outside_infection_rate * chance, True, True, True, average_shift, standard_dev)
-    all_measures = all_measures / number_of_runs
+        all_measures += [run_simulation(num_in_office, office_volume, outside_infection_rate * chance, True, True, True, average_shift, standard_dev)]
+    all_measures_mean = np.mean(all_measures)
+    all_measures_std = np.std(all_measures)
     print("The expected number of people with covid after one day in office is " + str(
-        all_measures) + " when the office uses all mentioned mitigation strategies.")
+        all_measures_mean) + " when the office uses all mentioned mitigation strategies.")
 
-# TODO: stats on output?
+    print("LaTeX Table Form")
+    print("\hline")
+    print(" & No Measures & Masking Only & Ventilation Only & Quarantine & All Measures")
+    print("\hline\hline")
+    print("Mean & " + str(without_measures_mean) + " & " + str(masking_mean) + " & " + str(
+        ventilation_mean) + " & " + str(quarantine_mean) + " & " + str(all_measures_mean))
+    print("\hline")
+    print("Standard Deviation & " + str(without_measures_std) + " & " + str(masking_std) + " & " + str(
+        ventilation_std) + " & " + str(quarantine_std) + " & " + str(all_measures_std))
+    print("\hline")
+
+# TODO: Test 80sqft per person, 125, 150
+# TODO: Test 20, 50, 100, 500 people
 
 def main():
-    num_in_office = 50
-    office_volume = 18750
+    num_in_office = 20
+    office_volume = 360
     outside_infection_rate = 0.0015
-    average_shift = 480
-    standard_dev = 15
+    average_shift = 433.578
+    standard_dev = 20.32
     main_allnumbers(num_in_office, office_volume, outside_infection_rate, average_shift, standard_dev)
     main_runasone(num_in_office, office_volume, outside_infection_rate, average_shift, standard_dev)
 
