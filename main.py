@@ -61,7 +61,7 @@ def run_simulation(num_in_office, office_volume, outside_infection_rate=0.0015, 
         number_infected_in_office = 0
         for i in range(num_in_office):
             time_in_office = rv_time_in_office(ave_shift, standard_dev)
-            if random.random() <= probability_catch_covid(num_in_office, office_volume, time_in_office, ismasked, isvent):
+            if random.random() <= probability_catch_covid(1, office_volume, time_in_office, ismasked, isvent):
                 number_infected_in_office += 1
         return number_infected_in_office
     else:
@@ -74,7 +74,7 @@ def run_simulation(num_in_office, office_volume, outside_infection_rate=0.0015, 
             number_infected_in_office = 0
             for j in range(num_in_office-k):
                 time_in_office = rv_time_in_office(ave_shift, standard_dev)
-                if random.random() <= probability_catch_covid(num_in_office, office_volume, time_in_office, ismasked, isvent):
+                if random.random() <= probability_catch_covid(k, office_volume, time_in_office, ismasked, isvent):
                     number_infected_in_office += 1
             expected_number_infected += probability*number_infected_in_office
         return expected_number_infected
